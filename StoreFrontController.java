@@ -134,7 +134,7 @@ public class StoreFrontController {
 		for(CategoryMerchandise__c catg : [SELECT Merchandise__c
 										   FROM CategoryMerchandise__c
 										   WHERE Category__c = :selectedCategory]) {
-			merchandiseList.add(catg.Merchandise__c);
+			merchandiseList.add (catg.Merchandise__c);
 		}
 
 		List<Merchandise__c> merchList = [SELECT Id, Name, Description__c, Price__c, Total_Inventory__c
