@@ -1,0 +1,103 @@
+<apex:page controller="StoreFrontController" sidebar="false" showHeader="false">
+<apex:toolbar >
+	<apex:toolbarGroup itemSeparator="line" id="toobarGroupLinks">
+			<apex:image value="http://blog.monitor.us/wp-content/uploads/2011/12/checkmark.png" width="49" height="39"/>
+		<span style="color:#f6f6f6;font-size:190%">Product Catalog</span>
+	</apex:toolbarGroup>
+
+	<apex:outputPanel >
+		<apex:outputLink style="color:#B8B8B8;font-size:110%"
+		value="cly-developer-edition.ap1.force.com/SiteLogin">Login</apex:outputLink>
+	</apex:outputPanel>
+
+	<apex:outputPanel >
+		<apex:outputLink style="color:#B8B8B8;font-size:110%"
+		value="cly-developer-edition.ap1.force.com/SiteRegister">Register</apex:outputLink>
+	</apex:outputPanel>
+</apex:toolbar>
+
+<apex:form >
+
+
+	<style>
+		body {font-family: Arial Unicode MS;}
+		h1 {color:green;  font-size: 120%} 
+	</style>	  
+	
+	<script> 
+		twistSection(document.getElementById('{!$Component.block1.section1}').getElementsByTagName('img')[0])
+	</script>
+		
+	<script>
+		function buymsg() {
+			alert('Purchased, thank you!')
+		}
+	</script>
+
+
+	<apex:pageBlock id="block1">
+		<apex:pageBlockSection id="section1" columns="2" collapsible="true" title="Categories">
+			<apex:pageBlock >
+	
+			<apex:pageBlockSection >
+					<apex:selectList size="1" value="{!selectedCategory}">
+						<apex:actionSupport event="onchange" action="{!rerenderTable}" />
+						<apex:selectoption itemlabel="--Select Category--" itemValue="" />
+						<apex:selectoptions value="{!categoryOptions}"/>
+					</apex:selectList>
+			</apex:pageBlockSection>
+	
+			<apex:pageBlockTable value="{!products}" var="pitem">
+
+				<apex:column headerValue="Add">					
+			    	<apex:inputCheckbox value="{!pitem.isChecked}"/>
+				</apex:column>
+
+				<apex:column headerValue="Product">
+					<apex:outputText value="{!pitem.Name}" style="font-weight: bold"/>
+				</apex:column>
+
+				<apex:column headerValue="Description" width="250px">
+					<apex:outputText value="{!pitem.Description}" style="font-style:italic; font-size:7"/>
+				</apex:column>
+
+				<apex:column headerValue="Price" style="text-align: left;">
+					<apex:outputText value="{0,number,currency}">
+						<apex:param value="{!pitem.Price}"/>
+					</apex:outputText>
+				</apex:column>
+
+				<apex:column headerValue="Quantity to Buy" width="50px">
+					<apex:inputText value="{!pitem.qtyToBuy}" rendered="{! pitem.inStock}"/>
+						<apex:outputText value="Out of Stock" rendered="{! NOT(pitem.inStock)}"/>
+				</apex:column>
+			</apex:pageBlockTable>
+					
+			<apex:pageBlockSection >
+				<apex:commandButton action="{!addToCart}" value="Add to Cart" reRender="shopping_cart" status="slc"/>
+				<br>
+				<apex:outputPanel >
+			   	    <apex:actionstatus id="slc"	startText="selecting...">
+			   	    </apex:actionstatus>			   	    
+			   	</apex:outputPanel>
+			   	</br>
+			</apex:pageBlockSection>
+				
+			</apex:pageBlock>	
+		</apex:pageBlockSection>
+		
+	</apex:pageBlock>
+	
+	<apex:pageBlock title="Your Cart" id="shopping_cart">
+	  <apex:image value="http://taylorcountycomputers.com/wp-content/uploads/2011/05/shopping_cart.png" width="50" height="50"/>	  
+		<apex:outputText value="{!cartContents}" escape="false"/>
+		<!-- <apex:outputText value="{!showTotal}"/>  --> 
+			<apex:pageBlockSection >				
+	 			<apex:commandButton value="Buy Items" action="{!makePurchase}" onclick="buymsg()"/> 
+			</apex:pageBlockSection>
+	</apex:pageBlock>	
+	
+
+</apex:form>
+
+</apex:page>
