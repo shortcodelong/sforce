@@ -99,7 +99,7 @@ public class StoreFrontController {
 				set;}		
 		
 		public Decimal totalAmount {
-			get {return price * qtyToBuy;} 
+			get {return price * smth;} 
 				set;}				
 				
 		public Integer qtyToBuy {get; set;}
