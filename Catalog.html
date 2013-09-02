@@ -1,55 +1,61 @@
 <apex:page controller="StoreFrontController" sidebar="false" showHeader="false">
-<apex:toolbar >
-	<apex:toolbarGroup itemSeparator="line" id="toobarGroupLinks">
+ <apex:toolbar >
+	<apex:toolbarGroup id="toobarGroupLinks">
 			<apex:image value="http://blog.monitor.us/wp-content/uploads/2011/12/checkmark.png" width="49" height="39"/>
 		<span style="color:#f6f6f6;font-size:190%">Product Catalog</span>
 	</apex:toolbarGroup>
 
-	<apex:outputPanel >
-		<apex:outputLink style="color:#B8B8B8;font-size:110%"
-		value="cly-developer-edition.ap1.force.com/SiteLogin">Login</apex:outputLink>
+	<apex:outputPanel rendered="{!if ($User.Alias='guest', true, false)}">
+		<apex:outputLink style="color:#B8B8B8;font-size:110%" value="/SiteLogin">Login</apex:outputLink>
 	</apex:outputPanel>
 
-	<apex:outputPanel >
-		<apex:outputLink style="color:#B8B8B8;font-size:110%"
-		value="cly-developer-edition.ap1.force.com/SiteRegister">Register</apex:outputLink>
+	<apex:outputPanel rendered="{!if ($User.Alias='guest', true, false)}">
+		<apex:outputLink style="color:#B8B8B8;font-size:110%" value="/SiteRegister">Register</apex:outputLink>
 	</apex:outputPanel>
-</apex:toolbar>
 
-<apex:form >
+	<apex:outputPanel rendered="{!if ($User.Alias='guest', false, true)}">
+		<apex:outputLink style="color:#858585;font-size:110%" value="/secur/logout.jsp">Logout</apex:outputLink>
+	</apex:outputPanel>
 
+	<apex:outputPanel style="color:#c6c6c6;font-size:100%">
+		(Logged as {!$User.Alias} - {!$Profile.Name})
+	</apex:outputPanel>
 
-	<style>
+	<apex:outputPanel rendered="{!if ($Profile.Name='TEsts', true, false)}">
+		<apex:outputLink style="color:#d2b48c;font-size:110%" value="/ManagerPage" >Manager's Page</apex:outputLink>
+	</apex:outputPanel>
+
+ </apex:toolbar>
+
+ 	<style>
 		body {font-family: Arial Unicode MS;}
-		h1 {color:green;  font-size: 120%} 
-	</style>	  
-	
-	<script> 
-		twistSection(document.getElementById('{!$Component.block1.section1}').getElementsByTagName('img')[0])
-	</script>
-		
+		h1 {color:green;  font-size: 120%}
+	</style>
+
 	<script>
 		function buymsg() {
 			alert('Purchased, thank you!')
 		}
 	</script>
 
-
+<apex:form id="mainform">
+ <apex:actionFunction name="reRenderBlock" rerender="block1"/>
 	<apex:pageBlock id="block1">
 		<apex:pageBlockSection id="section1" columns="2" collapsible="true" title="Categories">
 			<apex:pageBlock >
-	
-			<apex:pageBlockSection >
-					<apex:selectList size="1" value="{!selectedCategory}">
-						<apex:actionSupport event="onchange" action="{!rerenderTable}" />
-						<apex:selectoption itemlabel="--Select Category--" itemValue="" />
-						<apex:selectoptions value="{!categoryOptions}"/>
-					</apex:selectList>
+			<apex:pageBlockSection columns="1" >
+					<apex:pageMessages ></apex:pageMessages>
+				<apex:selectList size="1" value="{!selectedCategory}">
+					<apex:actionSupport event="onchange" action="{!rerenderTable}" rerender="block1" status="slc2" />
+					<apex:selectoption itemlabel="--Select Category--" itemValue=""/>
+					<apex:selectoptions value="{!categoryOptions}"/>
+					<apex:actionstatus id="slc2" startText="->">
+			   	    </apex:actionstatus>
+				</apex:selectList>
 			</apex:pageBlockSection>
-	
-			<apex:pageBlockTable value="{!products}" var="pitem">
 
-				<apex:column headerValue="Add">					
+			<apex:pageBlockTable id="blocktable" value="{!products}" var="pitem" >
+				<apex:column headerValue="Add" rendered="{!if ($Profile.Name != 'TEsts', true, false)}">
 			    	<apex:inputCheckbox value="{!pitem.isChecked}"/>
 				</apex:column>
 
@@ -57,47 +63,98 @@
 					<apex:outputText value="{!pitem.Name}" style="font-weight: bold"/>
 				</apex:column>
 
-				<apex:column headerValue="Description" width="250px">
+				<apex:column headerValue="Product description">
 					<apex:outputText value="{!pitem.Description}" style="font-style:italic; font-size:7"/>
 				</apex:column>
 
-				<apex:column headerValue="Price" style="text-align: left;">
+				<apex:column headerValue="Price">
 					<apex:outputText value="{0,number,currency}">
 						<apex:param value="{!pitem.Price}"/>
 					</apex:outputText>
 				</apex:column>
+				
+				<apex:column headerValue="In stock" rendered="{!if ($Profile.Name = 'TEsts', true, false)}">
+					<apex:outputText value="{0,number}">
+						<apex:param value="{!pitem.totalInventory}"/>
+					</apex:outputText>
+				</apex:column>
 
-				<apex:column headerValue="Quantity to Buy" width="50px">
-					<apex:inputText value="{!pitem.qtyToBuy}" rendered="{! pitem.inStock}"/>
-						<apex:outputText value="Out of Stock" rendered="{! NOT(pitem.inStock)}"/>
+				<apex:column headerValue="Quantity to Buy" rendered="{!if ($Profile.Name != 'TEsts', true, false)}">
+					<apex:outputPanel styleClass="requiredInput" layout="qty">
+        			<apex:outputPanel styleClass="requiredBlock" layout="qty"/>
+					<apex:inputText value="{!pitem.qtyToBuy}" rendered="{! pitem.inStock}" id="qty"/>
+					</apex:outputPanel>
+					<apex:outputText value="Out of Stock" rendered="{! NOT(pitem.inStock)}"/>
 				</apex:column>
 			</apex:pageBlockTable>
-					
-			<apex:pageBlockSection >
-				<apex:commandButton action="{!addToCart}" value="Add to Cart" reRender="shopping_cart" status="slc"/>
-				<br>
+
+			<apex:pageBlockSection rendered="{!if ($Profile.Name != 'TEsts', true, false)}">
+				<apex:commandButton action="{!addToCart}" value="Add to Cart" reRender="shopping_cart, block1" status="slc" />
 				<apex:outputPanel >
 			   	    <apex:actionstatus id="slc"	startText="selecting...">
-			   	    </apex:actionstatus>			   	    
+			   	    </apex:actionstatus>
 			   	</apex:outputPanel>
-			   	</br>
 			</apex:pageBlockSection>
-				
-			</apex:pageBlock>	
+
+			</apex:pageBlock>
 		</apex:pageBlockSection>
-		
 	</apex:pageBlock>
-	
-	<apex:pageBlock title="Your Cart" id="shopping_cart">
-	  <apex:image value="http://taylorcountycomputers.com/wp-content/uploads/2011/05/shopping_cart.png" width="50" height="50"/>	  
+
+	<apex:pageBlock title="Your Cart" id="shopping_cart" rendered="{!if ($Profile.Name != 'TEsts', true, false)}">
+	  <apex:image value="http://i.imgur.com/IeWbfUH.png" width="50" height="50"/>
 		<apex:outputText value="{!cartContents}" escape="false"/>
-		<!-- <apex:outputText value="{!showTotal}"/>  --> 
-			<apex:pageBlockSection >				
-	 			<apex:commandButton value="Buy Items" action="{!makePurchase}" onclick="buymsg()"/> 
+			<apex:pageBlockSection >
+	 			<apex:commandButton value="Buy Items" action="{!makePurchase}" onclick="buymsg()"/>
 			</apex:pageBlockSection>
-	</apex:pageBlock>	
-	
+	</apex:pageBlock>
+
+	<!-- 
+	<apex:pageBlock title="Purchase details:" rendered="{!if ($Profile.Name = 'SimpleCustomer', true, false)}">
+		<apex:outputText value="Purchase time: {!NOW()}" /> <br/>
+
+		<apex:outputText value="Purchased items:" />
+		<apex:dataList id="purchdProd" value="{!purchList}" var="purch" >
+			<apex:outputText >
+				{!purch.CartItemName__c}
+				(Total price: ${!purch.Price__c * purch.Quantity__c}) / Qty: {!purch.Quantity__c}
+				<apex:outputText value="<{!purch.LastModifiedDate}>" style="font-style:italic; font-size:6"/>
+			</apex:outputText>
+		</apex:dataList>
+	</apex:pageBlock>
+	 -->
+
+	<!-- <apex:dataList id="cartList" value="{!cartList}" var="cart" rendered="{!if ($Profile.Name = 'SimpleCustomer', true, false)}">
+		<apex:outputLink value="/CartPage?id={!cart.ID}">
+			Cart:
+			{!cart.Name}
+		</apex:outputLink>
+	</apex:dataList>  -->
+
+	 <!-- 
+	<apex:pageBlock >
+ 	<apex:pageBlockSection >
+		<apex:dataList value="{!DataL}" var="Data">
+			<apex:pageBlockSection id="carts" title="Cart: {!Data.cart.name}">
+				<apex:dataList value="{!Data.items}" var="Items">
+					Product: {!Items.CartItemName__c}
+					<br>Price: ${!Items.Price__c}</br>
+					Qty: {!Items.Quantity__c}
+					<br>(Total: ${!Items.Price__c * Items.Quantity__c})</br>
+				</apex:dataList>
+				<script>twistSection(document.getElementById("{!$Component.carts}").childNodes[0].childNodes[0]);</script>
+			</apex:pageBlockSection>
+		</apex:dataList>
+	</apex:pageBlockSection>
+	</apex:pageBlock>
+	 -->
+		 
+		<apex:dataList id="cartList" value="{!DataL}" var="Data">
+					<apex:outputLink value="?id={!Data.cart.ID}">
+						<apex:outputText value="{!Data.cart.name}"/>
+					</apex:outputLink>
+		</apex:dataList>
+		
 
 </apex:form>
-<!-- -->
+
 </apex:page>
